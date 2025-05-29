@@ -1,0 +1,192 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+  }
+
+  /* Ocean Theme */
+  [data-theme="ocean"] {
+    --primary: 199 89% 48%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 197 37% 96%;
+    --accent: 196 75% 88%;
+  }
+
+  [data-theme="ocean"].dark {
+    --primary: 199 89% 48%;
+    --secondary: 200 50% 12%;
+    --accent: 200 50% 16%;
+    --background: 200 50% 8%;
+    --card: 200 50% 10%;
+  }
+
+  /* Forest Theme */
+  [data-theme="forest"] {
+    --primary: 142 76% 36%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 138 76% 97%;
+    --accent: 142 76% 88%;
+  }
+
+  [data-theme="forest"].dark {
+    --primary: 142 76% 36%;
+    --secondary: 140 50% 12%;
+    --accent: 140 50% 16%;
+    --background: 140 50% 8%;
+    --card: 140 50% 10%;
+  }
+
+  /* Sunset Theme */
+  [data-theme="sunset"] {
+    --primary: 24 95% 53%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 24 95% 97%;
+    --accent: 24 95% 88%;
+  }
+
+  [data-theme="sunset"].dark {
+    --primary: 24 95% 53%;
+    --secondary: 25 50% 12%;
+    --accent: 25 50% 16%;
+    --background: 25 50% 8%;
+    --card: 25 50% 10%;
+  }
+
+  /* Midnight Theme */
+  [data-theme="midnight"] {
+    --primary: 263 70% 50%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 263 70% 97%;
+    --accent: 263 70% 88%;
+  }
+
+  [data-theme="midnight"].dark {
+    --primary: 263 70% 50%;
+    --secondary: 260 50% 12%;
+    --accent: 260 50% 16%;
+    --background: 260 50% 8%;
+    --card: 260 50% 10%;
+  }
+
+  /* Aurora Theme */
+  [data-theme="aurora"] {
+    --primary: 310 70% 50%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 310 70% 97%;
+    --accent: 310 70% 88%;
+  }
+
+  [data-theme="aurora"].dark {
+    --primary: 310 70% 50%;
+    --secondary: 310 50% 12%;
+    --accent: 310 50% 16%;
+    --background: 310 50% 8%;
+    --card: 310 50% 10%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Theme-specific gradients */
+.theme-gradient {
+  @apply bg-gradient-to-br;
+}
+
+[data-theme="default"] .theme-gradient {
+  @apply from-blue-50 to-cyan-50;
+}
+
+[data-theme="default"].dark .theme-gradient {
+  @apply from-gray-900 to-gray-800;
+}
+
+[data-theme="ocean"] .theme-gradient {
+  @apply from-blue-50 to-teal-50;
+}
+
+[data-theme="ocean"].dark .theme-gradient {
+  @apply from-blue-950 to-teal-950;
+}
+
+[data-theme="forest"] .theme-gradient {
+  @apply from-green-50 to-emerald-50;
+}
+
+[data-theme="forest"].dark .theme-gradient {
+  @apply from-green-950 to-emerald-950;
+}
+
+[data-theme="sunset"] .theme-gradient {
+  @apply from-orange-50 to-red-50;
+}
+
+[data-theme="sunset"].dark .theme-gradient {
+  @apply from-orange-950 to-red-950;
+}
+
+[data-theme="midnight"] .theme-gradient {
+  @apply from-purple-50 to-indigo-50;
+}
+
+[data-theme="midnight"].dark .theme-gradient {
+  @apply from-purple-950 to-indigo-950;
+}
+
+[data-theme="aurora"] .theme-gradient {
+  @apply from-pink-50 to-purple-50;
+}
+
+[data-theme="aurora"].dark .theme-gradient {
+  @apply from-pink-950 to-purple-950;
+}
