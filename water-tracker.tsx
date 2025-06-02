@@ -190,8 +190,11 @@ export default function Component() {
     const savedDate = localStorage.getItem("lastResetDate")
     const savedGlassSize = localStorage.getItem("glassSizeML")
 
-    if (savedGlasses) setWaterGlasses(Number.parseInt(savedGlasses))
-    if (savedGoal) setDailyGoal(Number.parseInt(savedGoal))
+    const currentGlasses = savedGlasses ? Number.parseInt(savedGlasses) : 0
+    const currentGoal = savedGoal ? Number.parseInt(savedGoal) : 8
+
+    if (savedGlasses) setWaterGlasses(currentGlasses)
+    if (savedGoal) setDailyGoal(currentGoal)
     if (savedDate) setLastResetDate(savedDate)
     if (savedGlassSize) setGlassSizeML(Number.parseInt(savedGlassSize))
 
@@ -205,7 +208,7 @@ export default function Component() {
       setUnlockedLoot(unlocked)
 
       // Load user stats based on coherent data
-      await refreshUserStats(history, savedGlasses ? Number.parseInt(savedGlasses) : 0)
+      await refreshUserStats(history, currentGlasses)
     } catch (error) {
       console.error("Error loading initial data:", error)
     } finally {
@@ -268,12 +271,17 @@ export default function Component() {
     }
   }, [waterGlasses]) // Removed progressHistory.length from dependencies
 
+  // Corregir la función awardXP para no dar XP por vasos adicionales
   const awardXP = (amount: number, reason: string) => {
-    // XP is now calculated coherently in the API, but we can show notifications
-    console.log(`+${amount} XP: ${reason}`)
+    // Solo mostrar notificación si el vaso cuenta para XP (no excede la meta)
+    if (waterGlasses <= dailyGoal) {
+      console.log(`+${amount} XP: ${reason}`)
+    } else {
+      console.log(`Vaso adicional registrado (sin XP adicional)`)
+    }
 
-    // Check for surprise loot
-    if (Math.random() < 0.15) {
+    // Check for surprise loot solo si el vaso cuenta
+    if (waterGlasses <= dailyGoal && Math.random() < 0.15) {
       triggerSurpriseLoot()
     }
   }
@@ -503,6 +511,7 @@ export default function Component() {
                 {userStats.title}
               </Badge>
             </div>
+            {/* Corregir la visualización de XP en el header */}
             <div className="space-y-1">
               <div className="flex justify-between text-sm">
                 <span>
@@ -567,9 +576,7 @@ export default function Component() {
               <SelectContent>
                 {unlockedThemes.map((theme) => (
                   <SelectItem key={theme} value={theme}>
-                    <div className="flex items-center gap-2">
-                      {getThemeName(theme)}
-                    </div>
+                    <div className="flex items-center gap-2">{getThemeName(theme)}</div>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -700,6 +707,18 @@ export default function Component() {
                   {waterGlasses >= dailyGoal && t.motivational.goalReached}
                 </p>
               </div>
+
+              {/* Agregar indicador visual cuando se excede la meta */}
+              {waterGlasses > dailyGoal && (
+                <div className="text-center p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg border border-yellow-200 dark:border-yellow-700">
+                  <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                    🌟{" "}
+                    {language === "en"
+                      ? "Extra hydration! (No additional XP)"
+                      : "¡Hidratación extra! (Sin XP adicional)"}
+                  </p>
+                </div>
+              )}
 
               {/* Glass Size Configuration */}
               <div className="space-y-3 p-4 bg-muted/50 rounded-lg border-t border-border">

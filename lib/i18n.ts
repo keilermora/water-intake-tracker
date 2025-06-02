@@ -100,6 +100,14 @@ export interface Translations {
   unlockedNewReward: string
   great: string
   almostThere: string
+
+  // Add new XP related translations
+  extraHydration: string
+  noAdditionalXP: string
+  glassAdded: string
+  glassRemoved: string
+  xpEarned: string
+  noXpForExtra: string
 }
 
 export const translations: Record<Language, Translations> = {
@@ -259,6 +267,12 @@ export const translations: Record<Language, Translations> = {
 
     language: "Idioma",
     selectLanguage: "Seleccionar idioma",
+    extraHydration: "¡Hidratación extra!",
+    noAdditionalXP: "Sin XP adicional",
+    glassAdded: "Vaso agregado",
+    glassRemoved: "Vaso removido",
+    xpEarned: "XP ganado",
+    noXpForExtra: "Los vasos adicionales no otorgan XP",
   },
 
   en: {
@@ -417,5 +431,11 @@ export const translations: Record<Language, Translations> = {
 
     language: "Language",
     selectLanguage: "Select language",
+    extraHydration: "Extra hydration!",
+    noAdditionalXP: "No additional XP",
+    glassAdded: "Glass added",
+    glassRemoved: "Glass removed",
+    xpEarned: "XP earned",
+    noXpForExtra: "Extra glasses don't grant XP",
   },
 }

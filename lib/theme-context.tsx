@@ -22,13 +22,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mode, setModeState] = useState<ThemeMode>("system")
   const [style, setStyleState] = useState<ThemeStyle>("default")
   const [isDark, setIsDark] = useState(false)
-  const [unlockedThemes, setUnlockedThemes] = useState<ThemeStyle[]>(["default"])
+  const [unlockedThemes, setUnlockedThemes] = useState<ThemeStyle[]>(["default", "ocean"])
 
   // Load saved preferences
   useEffect(() => {
     const savedMode = localStorage.getItem("themeMode") as ThemeMode
     const savedStyle = localStorage.getItem("themeStyle") as ThemeStyle
-    const savedUnlocked = JSON.parse(localStorage.getItem("unlockedThemes") || '["default"]')
+    const savedUnlocked = JSON.parse(localStorage.getItem("unlockedThemes") || '["default", "ocean"]')
 
     if (savedMode) setModeState(savedMode)
     if (savedStyle && savedUnlocked.includes(savedStyle)) setStyleState(savedStyle)

@@ -176,22 +176,25 @@ export const generateCoherentHistory = (): DayProgress[] => {
     const date = new Date(today)
     date.setDate(date.getDate() - i)
 
-    // Simular patrones realistas:
-    // - Mejor rendimiento en días laborales
-    // - Peor rendimiento los fines de semana
-    // - Rachas y caídas naturales
     const dayOfWeek = date.getDay()
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
 
-    // Base de vasos según el día
-    let baseGlasses = isWeekend
-      ? Math.floor(Math.random() * 6) + 3
-      : // 3-8 vasos fines de semana
-        Math.floor(Math.random() * 8) + 5 // 5-12 vasos días laborales
+    // Crear una racha inicial de al menos 3-5 días para que el usuario tenga logros
+    let baseGlasses: number
+    if (i <= 5) {
+      // Últimos 5 días: asegurar que cumple la meta para tener racha
+      baseGlasses = Math.floor(Math.random() * 4) + 8 // 8-11 vasos (cumple meta de 8)
+    } else if (isWeekend) {
+      baseGlasses = Math.floor(Math.random() * 6) + 3 // 3-8 vasos fines de semana
+    } else {
+      baseGlasses = Math.floor(Math.random() * 8) + 5 // 5-12 vasos días laborales
+    }
 
-    // Simular rachas y caídas
-    const streakFactor = Math.sin((i / 30) * Math.PI * 4) * 0.3 + 0.7 // Ondas de motivación
-    baseGlasses = Math.floor(baseGlasses * streakFactor)
+    // Simular rachas y caídas para días más antiguos
+    if (i > 5) {
+      const streakFactor = Math.sin((i / 30) * Math.PI * 4) * 0.3 + 0.7
+      baseGlasses = Math.floor(baseGlasses * streakFactor)
+    }
 
     // Asegurar valores mínimos y máximos realistas
     baseGlasses = Math.max(2, Math.min(15, baseGlasses))
@@ -232,34 +235,42 @@ export const calculateCurrentStreak = (history: DayProgress[], currentGlasses: n
   return streak
 }
 
-// Calcular XP total basado en historial
-export const calculateTotalXP = (history: DayProgress[], currentGlasses: number): number => {
+// Corregir la función calculateTotalXP para que no cuente vasos adicionales
+export const calculateTotalXP = (history: DayProgress[], currentGlasses: number, currentGoal: number): number => {
   let totalXP = 0
 
   // XP por días anteriores
   for (const day of history) {
-    // 10 XP por vaso
-    totalXP += day.glasses * 10
+    // Solo contar hasta la meta diaria, no más
+    const glassesForXP = Math.min(day.glasses, day.goal)
 
-    // 50 XP bonus por completar meta diaria
+    // 10 XP por vaso (solo hasta la meta)
+    totalXP += glassesForXP * 10
+
+    // 50 XP bonus por completar meta diaria (solo si se alcanza exactamente)
     if (day.glasses >= day.goal) {
       totalXP += 50
     }
 
-    // Bonus por superar la meta
-    if (day.glasses > day.goal) {
-      totalXP += (day.glasses - day.goal) * 5
-    }
+    // NO dar XP por vasos adicionales más allá de la meta
   }
 
-  // XP del día actual
-  totalXP += currentGlasses * 10
+  // XP del día actual (solo hasta la meta)
+  const currentGlassesForXP = Math.min(currentGlasses, currentGoal)
+  totalXP += currentGlassesForXP * 10
+
+  // Bonus del día actual si se alcanza la meta
+  if (currentGlasses >= currentGoal) {
+    totalXP += 50
+  }
 
   return totalXP
 }
 
-// Calcular nivel basado en XP total
-export const calculateLevel = (totalXP: number): { level: number; currentXP: number; xpToNext: number } => {
+// Corregir la función calculateLevel para mostrar XP correctamente
+export const calculateLevel = (
+  totalXP: number,
+): { level: number; currentXP: number; xpToNext: number; xpForCurrentLevel: number } => {
   let level = 1
   let xpRequired = 100
   let totalRequired = 0
@@ -272,11 +283,12 @@ export const calculateLevel = (totalXP: number): { level: number; currentXP: num
 
   const currentXP = totalXP - totalRequired
   const xpToNext = xpRequired - currentXP
+  const xpForCurrentLevel = xpRequired // Total XP necesario para el nivel actual
 
-  return { level, currentXP, xpToNext }
+  return { level, currentXP, xpToNext, xpForCurrentLevel }
 }
 
-// Sistema de logros coherente basado en datos reales
+// Corregir la función calculateEarnedBadges para ser más estricta
 export const calculateEarnedBadges = (
   history: DayProgress[],
   streak: number,
@@ -284,18 +296,22 @@ export const calculateEarnedBadges = (
   currentGoal: number,
 ): string[] => {
   const badges: string[] = []
-  const allHistory = [...history]
 
-  // Agregar el día actual si tiene progreso
-  if (currentGlasses > 0) {
-    const today = new Date().toDateString()
-    const existingToday = allHistory.find((h) => h.date === today)
-    if (!existingToday) {
-      allHistory.push({ date: today, glasses: currentGlasses, goal: currentGoal })
-    }
+  // Crear historial completo pero sin permitir manipulación
+  const allHistory = [...history]
+  const today = new Date().toDateString()
+
+  // Solo agregar el día actual si tiene progreso válido
+  const existingToday = allHistory.find((h) => h.date === today)
+  if (!existingToday && currentGlasses > 0) {
+    allHistory.push({ date: today, glasses: currentGlasses, goal: currentGoal })
+  } else if (existingToday) {
+    // Actualizar el día actual
+    existingToday.glasses = currentGlasses
+    existingToday.goal = currentGoal
   }
 
-  // 1. Badge de racha de 7 días
+  // 1. Badge de racha de 7 días (basado en racha calculada, no manipulable)
   if (streak >= 7) {
     badges.push("badge_streak_7")
   }
@@ -326,8 +342,12 @@ export const calculateEarnedBadges = (
     }
   }
 
-  // 5. Badge sobresaliente (150% de la meta en un día)
-  const hasOverachieved = allHistory.some((day) => day.glasses >= day.goal * 1.5)
+  // 5. Badge sobresaliente (150% de la meta en un día) - solo días completos
+  const hasOverachieved = allHistory.some((day) => {
+    // Solo contar días que no sean hoy, o si hoy ya está "completo"
+    const isToday = day.date === today
+    return day.glasses >= day.goal * 1.5 && (!isToday || currentGlasses >= currentGoal)
+  })
   if (hasOverachieved) {
     badges.push("badge_overachiever")
   }
@@ -338,24 +358,57 @@ export const calculateEarnedBadges = (
     badges.push("badge_hydration_hero")
   }
 
-  // 7. Badge guerrero del agua (100+ vasos total)
-  const totalGlasses = allHistory.reduce((sum, day) => sum + day.glasses, 0)
-  if (totalGlasses >= 100) {
+  // 7. Badge guerrero del agua (100+ vasos total) - solo contar hasta la meta por día
+  const totalValidGlasses = allHistory.reduce((sum, day) => {
+    return sum + Math.min(day.glasses, day.goal) // Solo contar hasta la meta
+  }, 0)
+  if (totalValidGlasses >= 100) {
     badges.push("badge_water_warrior")
   }
 
-  // 8. Badge destructor de metas (superar meta 10 veces)
-  const exceededGoalCount = allHistory.filter((day) => day.glasses > day.goal).length
+  // 8. Badge destructor de metas (superar meta 10 veces) - solo días completos
+  const exceededGoalCount = allHistory.filter((day) => {
+    const isToday = day.date === today
+    return day.glasses > day.goal && (!isToday || currentGlasses >= currentGoal)
+  }).length
   if (exceededGoalCount >= 10) {
     badges.push("badge_goal_crusher")
   }
 
-  // 9. Badge de dedicación (21 días usando la app)
+  // 9. Badge de dedicación (21 días usando la app) - basado en historial real
   if (allHistory.length >= 21) {
     badges.push("badge_dedication")
   }
 
   return badges
+}
+
+// Actualizar la función getUserStats para usar los nuevos cálculos
+export const getUserStats = async (
+  history: DayProgress[],
+  currentGlasses: number,
+  currentGoal: number,
+  language: "es" | "en",
+): Promise<UserStats> => {
+  await simulateNetworkDelay()
+
+  const streak = calculateCurrentStreak(history, currentGlasses, currentGoal)
+  const totalXP = calculateTotalXP(history, currentGlasses, currentGoal)
+  const { level, currentXP, xpToNext, xpForCurrentLevel } = calculateLevel(totalXP)
+  const badges = calculateEarnedBadges(history, streak, currentGlasses, currentGoal)
+  const levelNames = getLevelNames(language)
+
+  const stats: UserStats = {
+    level,
+    xp: currentXP,
+    xpToNext: xpForCurrentLevel, // Cambiar a total para el nivel, no restante
+    totalXP,
+    streak,
+    badges,
+    title: levelNames[Math.min(level - 1, levelNames.length - 1)],
+  }
+
+  return stats
 }
 
 export const generateCoherentLeaderboard = (userStats: UserStats, language: "es" | "en"): LeaderboardUser[] => {
@@ -419,15 +472,15 @@ export const mockAPI = {
     await simulateNetworkDelay()
 
     const streak = calculateCurrentStreak(history, currentGlasses, currentGoal)
-    const totalXP = calculateTotalXP(history, currentGlasses)
-    const { level, currentXP, xpToNext } = calculateLevel(totalXP)
+    const totalXP = calculateTotalXP(history, currentGlasses, currentGoal)
+    const { level, currentXP, xpToNext, xpForCurrentLevel } = calculateLevel(totalXP)
     const badges = calculateEarnedBadges(history, streak, currentGlasses, currentGoal)
     const levelNames = getLevelNames(language)
 
     const stats: UserStats = {
       level,
       xp: currentXP,
-      xpToNext,
+      xpToNext: xpForCurrentLevel, // Cambiar a total para el nivel, no restante
       totalXP,
       streak,
       badges,
@@ -474,7 +527,16 @@ export const mockAPI = {
   // Obtener loot desbloqueado
   async getUnlockedLoot(): Promise<string[]> {
     await simulateNetworkDelay()
-    return JSON.parse(localStorage.getItem("unlockedLoot") || "[]")
+    const saved = localStorage.getItem("unlockedLoot")
+
+    if (saved) {
+      return JSON.parse(saved)
+    }
+
+    // Logros por defecto para nuevos usuarios
+    const defaultLoot = ["badge_streak_7", "theme_ocean"]
+    localStorage.setItem("unlockedLoot", JSON.stringify(defaultLoot))
+    return defaultLoot
   },
 }
 
